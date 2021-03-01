@@ -258,8 +258,6 @@ let initialPos = lane(0);
 
 let car = new Car(camBox, camera, initialPos.x, initialPos.y, 0);
 car.camAngle.set(-Math.PI / 8);
-car.steering.set(Math.PI / 3);
-car.speed.set(1);
 
 // Generate dataset
 let deltaTime, time, startTime = -1, tbef = 0;
