@@ -8,6 +8,7 @@ import { CopyShader } from "./three.js-dev/examples/jsm/shaders/CopyShader.js";
 import { RenderPass } from "./three.js-dev/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "./three.js-dev/examples/jsm/postprocessing/ShaderPass.js";
 import { SavePass } from "./three.js-dev/examples/jsm/postprocessing/SavePass.js";
+import Car from "./car.js";
 
 // Define constants
 const IMG_WIDTH = 320;
@@ -253,27 +254,29 @@ let blurComposerRender = getBlurComposer(renderer, 0xf0f0d0);
 //     Real time render processes, and robot simulation.
 // ================================================================
 
-const rand = [Math.random(), Math.random(), Math.random(), Math.random()];
-const posNoise = t => Math.sin(t * (40 + rand[0] * 20) * 7) * 4 + Math.cos(t * (65 + rand[1] * 25) * 3) * 3; // Max = 7
-const angleNoise = t => (Math.sin(t * (20 + rand[2] * 10) * 3) + Math.cos(t * (20 + rand[3] * 20) * 3)) * Math.PI / 24;
-const angleNoise2 = t => (Math.sin(t * (20 + rand[3] * 10) * 3) + Math.cos(t * (20 + rand[2] * 20) * 3)) * Math.PI / 48;
+let initialPos = lane(0);
+
+let car = new Car(camBox, camera, initialPos.x, initialPos.y, 0);
+car.camAngle.set(-Math.PI / 8);
+car.steering.set(Math.PI / 3);
+car.speed.set(1);
 
 // Generate dataset
-let time = 0;
-let baseTime = -1;
-function step(t_) {
-  if (baseTime <= 0) baseTime = t_;
-  time = (t_ - baseTime) / 40000;
-  const pos1 = lane(time);
-  const pos2 = lane(time + 0.02);
+let deltaTime, time, startTime = -1, tbef = 0;
+function step(t) {
+  // Update time-related variables
+  {
+    if (startTime <= 0) {
+      // Initial loop
+      startTime = tbef = t;
+    }
+    time = (t - startTime);
+    deltaTime = t - tbef;
+    tbef = t;
+  }
 
-  // Follow main path
-  camBox.position.set(pos2.x, 0, pos2.y);
-  camBox.lookAt(pos1.x, 0, pos1.y);
-
-  // Add noise on position and angle
-  camera.rotation.x = CAM_ANGLE + angleNoise2(time);
-
+  //Because the unit of deltaTime is 1000, we should divide it by 1000.
+  car.update(deltaTime / 1000);
   blurComposerRender(time);
   requestAnimationFrame(step);
 }
@@ -287,7 +290,7 @@ async function control() {
       headers: { 'content-type': 'text/html' },
       method: "POST"
     });
-  console.log(res);
+  console.log(await res.json());
   requestAnimationFrame(control);
 }
 requestAnimationFrame(control);
