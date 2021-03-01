@@ -187,7 +187,18 @@ let lane;
 
   msg.innerHTML = "";
 
-  step(0);
+  let res = await fetch("/reset",
+    {
+      method: "POST"
+    });
+  let json = await res.json();
+  console.log(json);
+  if (json['STATUS'] == 'OK') {
+    step(0);
+  }
+  else {
+    alert("Driver has not reset");
+  }
 })();
 
 // ================================================================
