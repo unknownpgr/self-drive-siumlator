@@ -11,6 +11,7 @@ import { SavePass } from "./three.js-dev/examples/jsm/postprocessing/SavePass.js
 import Car from "./car.js";
 
 import TRACK from '../settings/track.js';
+import OBJECTS from '../objects/objects.js';
 
 // Define constants
 const IMG_WIDTH = 320;
@@ -150,7 +151,6 @@ let lane;
 
   // instantiate a loader
   const loader = new OBJLoader();
-  const customMaterial = new THREE.MeshPhongMaterial({ color: '#404040' });
 
   function setMaterial(object, material) {
     object.traverse(function (child) {
@@ -168,17 +168,24 @@ let lane;
     });
   }
 
-  let [human, laptop] = await Promise.all([loadObj('./objects/human.obj'), loadObj('./objects/laptop.obj')]);
+  function vectorSet(object, info, property) {
+    if (info[property]) {
+      let vector = info[property];
+      object[property].set(vector[0], vector[1], vector[2]);
+    }
+  }
 
-  human.position.set(250, 0, 0);
-  setMaterial(human, customMaterial);
-  scene.add(human);
+  await Promise.all(OBJECTS.map(async objectInfo => {
+    let object = await loadObj('./objects/' + objectInfo.filename);
+    let material = new THREE.MeshPhongMaterial({ color: objectInfo.color ? objectInfo.color : '#404040' });
+    setMaterial(object, material);
 
-  laptop.position.set(249, 9, 0);
-  laptop.rotation.y = Math.PI;
-  laptop.scale.set(0.2, 0.2, 0.2);
-  setMaterial(laptop, customMaterial);
-  scene.add(laptop);
+    vectorSet(object, objectInfo, 'position');
+    vectorSet(object, objectInfo, 'rotation');
+    vectorSet(object, objectInfo, 'scale');
+
+    scene.add(object);
+  }));
 
   msg.innerHTML = "";
 
