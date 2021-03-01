@@ -288,7 +288,12 @@ async function control() {
       headers: { 'content-type': 'text/html' },
       method: "POST"
     });
-  console.log(await res.json());
+  let json = await res.json();
+  for (const [key, value] of Object.entries(json)) {
+    if (car[key] && car[key].set) {
+      car[key].set(value);
+    }
+  }
   requestAnimationFrame(control);
 }
 requestAnimationFrame(control);

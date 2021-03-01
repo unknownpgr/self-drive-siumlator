@@ -23,9 +23,9 @@ class Car {
         this.camBox = camBox;
         this.cam = cam;
 
-        // This values can change 90 degree per second
-        this.camAngle = new ServoVar(0, Math.PI / 2);
-        this.steering = new ServoVar(0, Math.PI / 2);
+        // This values can change 360 degree per second
+        this.camAngle = new ServoVar(0, Math.PI * 2);
+        this.steering = new ServoVar(0, Math.PI * 2);
 
         // Maximum acceleration = 6m/s^2
         this.speed = new ServoVar(0, 6);

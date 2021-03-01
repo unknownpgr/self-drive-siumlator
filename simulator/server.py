@@ -31,5 +31,5 @@ httpd = HTTPServer(("0.0.0.0", 8080), HTTPHandler)
 try:
     httpd.serve_forever()
 except KeyboardInterrupt:
-    pass
+    print("Stop server")
 httpd.server_close()
