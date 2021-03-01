@@ -12,7 +12,8 @@ app.post('/save', async (req, res) => {
   res.send();
   let { body } = req;
   let [fileName, data] = body.split(',');
-  fs.writeFile(__dirname + '/imgs/' + fileName, Buffer.from(data, 'base64'));
+  console.log(fileName);
+  let data2 = Buffer.from(data, 'base64');
 });
 
 app.listen(8080, () => {
