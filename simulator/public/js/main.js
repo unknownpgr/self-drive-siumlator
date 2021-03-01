@@ -186,7 +186,7 @@ let lane;
 
   msg.innerHTML = "";
 
-  animate(0);
+  step(0);
 })();
 
 // ================================================================
@@ -250,7 +250,7 @@ function getBlurComposer(renderer, clearColor) {
 let blurComposerRender = getBlurComposer(renderer, 0xf0f0d0);
 
 // ================================================================
-//     Real time render processes
+//     Real time render processes, and robot simulation.
 // ================================================================
 
 const rand = [Math.random(), Math.random(), Math.random(), Math.random()];
@@ -261,7 +261,7 @@ const angleNoise2 = t => (Math.sin(t * (20 + rand[3] * 10) * 3) + Math.cos(t * (
 // Generate dataset
 let time = 0;
 let baseTime = -1;
-function animate(t_) {
+function step(t_) {
   if (baseTime <= 0) baseTime = t_;
   time = (t_ - baseTime) / 40000;
   const pos1 = lane(time);
@@ -272,22 +272,22 @@ function animate(t_) {
   camBox.lookAt(pos1.x, 0, pos1.y);
 
   // Add noise on position and angle
-  let pN = posNoise(time);
-  let aN = angleNoise(time);
-  camera.position.x = pN;
-  camBox.rotation.y += aN;
   camera.rotation.x = CAM_ANGLE + angleNoise2(time);
 
   blurComposerRender(time);
-
-  // let data = renderer.domElement.toDataURL('image/png');
-  // data = data.replace('data:image/png;base64', pN + '_' + aN + '.png');
-  // fetch("save/",
-  //   {
-  //     body: data,
-  //     headers: { 'content-type': 'text/html' },
-  //     method: "POST"
-  //   });
-
-  requestAnimationFrame(animate);
+  requestAnimationFrame(step);
 }
+
+async function control() {
+  let data = renderer.domElement.toDataURL('image/png');
+  data = data.replace('data:image/png;base64', '');
+  let res = await fetch("save/",
+    {
+      body: data,
+      headers: { 'content-type': 'text/html' },
+      method: "POST"
+    });
+  console.log(res);
+  requestAnimationFrame(control);
+}
+requestAnimationFrame(control);
