@@ -10,6 +10,8 @@ import { ShaderPass } from "./three.js-dev/examples/jsm/postprocessing/ShaderPas
 import { SavePass } from "./three.js-dev/examples/jsm/postprocessing/SavePass.js";
 import Car from "./car.js";
 
+import TRACK from '../settings/track.js';
+
 // Define constants
 const IMG_WIDTH = 320;
 const IMG_HEIGHT = 240;
@@ -100,14 +102,7 @@ let ground;
 // Define lane. Scale unit : Centimeter
 let lane;
 {
-  lane = getPathFunction([
-    [0, 150],
-    [40, Math.PI * 5 / 4],
-    [50, - Math.PI * 6 / 4],
-    [35, Math.PI * 3 / 4],
-    [0, 100],
-    [40, -Math.PI],
-    [0, 200]]);
+  lane = getPathFunction(TRACK);
   let points = [];
   for (let t = 0; t < 1; t += 0.002) {
     points.push(lane(t));
