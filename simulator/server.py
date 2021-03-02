@@ -7,14 +7,14 @@ from driver import Driver
 import json
 
 ROOT = path.join(path.dirname(path.abspath(__file__)), 'public')
-print("PUBLIC :", ROOT)
+print("Static Server Root :", ROOT)
 
 driver = Driver()
 
 
 class DriverHandler(SimpleHTTPRequestHandler):
     '''
-    이 클래스는 가상의 운전자를 시뮬레이션하기 위한 클래스이다. HTTP request를 통해 제어된다.    
+    이 클래스는 driver.py에 정의된 가상의 운전자를 시뮬레이션하기 위한 클래스이다. HTTP request를 통해 제어된다.    
     다음과 같은 기능을 가진다.
         - ROOT 변수의 디렉토리에서 정적으로 파일을 서비스한다.
         - /reset 경로로 post요청이 들어올 경우, 운전자를 초기화한다.
@@ -30,6 +30,7 @@ class DriverHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         global driver
 
+        # 만약 /reset 경로로 요청이 들어왔을 경우, driver를 초기화하고 OK 메시지를 보낸다.
         if self.path == '/reset':
             print("Driver reset!")
             driver = Driver()
@@ -39,15 +40,23 @@ class DriverHandler(SimpleHTTPRequestHandler):
                 bytes(json.dumps({'STATUS': 'OK'}), encoding='utf-8'))
             return
 
-        data = str(self.rfile.read(
-            int(self.headers['Content-Length'])), encoding='utf-8')
+        # 그 외의 경우에는 전송된 이미지 데이터를 읽어 OpenCV에서 처리할 수 있는 형식으로 변환한다.
+        data_length = int(self.headers['Content-Length'])
+        data = str(self.rfile.read(data_length), encoding='utf-8')
         arr = np.frombuffer(base64.b64decode(data), np.uint8)
         img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+
+        # driver에 데이터를 입력한 후 출력을 반환받는다.
         drive_data = driver.drive(img)
 
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(bytes(json.dumps(drive_data), encoding='utf-8'))
+        try:
+            self.send_response(200)
+            self.end_headers()
+
+            # 반환받은 출력을 json string 형식으로 바꾼 후, bytes 형식으로 encoding하여 전송한다.
+            self.wfile.write(bytes(json.dumps(drive_data), encoding='utf-8'))
+        except ConnectionAbortedError:
+            return
 
     def log_message(self, format, *args):
         '''
@@ -57,6 +66,7 @@ class DriverHandler(SimpleHTTPRequestHandler):
         pass
 
 
+# Accept requests from every IP at port 8080
 httpd = HTTPServer(("0.0.0.0", 8080), DriverHandler)
 try:
     httpd.serve_forever()
